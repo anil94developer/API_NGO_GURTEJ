@@ -14,11 +14,23 @@ const queryRoutes = require('./routes/queries');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
+const getAllowedOrigins = () => {
+  if (process.env.ALLOWED_ORIGINS) {
+    return process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean);
+  }
+  return [
+    process.env.CLIENT_URL,
+    process.env.ADMIN_URL,
+    'http://localhost:5173',
+    'http://localhost:5174',
+  ].filter(Boolean);
+};
+
 app.use(
   cors({
-    origin: [process.env.CLIENT_URL, process.env.ADMIN_URL].filter(Boolean).length
-      ? [process.env.CLIENT_URL, process.env.ADMIN_URL].filter(Boolean)
-      : ['http://localhost:5173', 'http://localhost:5174'],
+    origin: getAllowedOrigins(),
     credentials: true,
   })
 );
@@ -52,6 +64,15 @@ const startServer = async () => {
       success: true,
       message: 'HopeConnect NGO Platform API is running',
       policy: 'Non-Monetary Donations Only',
+      env: process.env.NODE_ENV || 'development',
+    });
+  });
+
+  app.get('/', (req, res) => {
+    res.json({
+      success: true,
+      message: 'HopeConnect API',
+      health: '/api/health',
     });
   });
 
