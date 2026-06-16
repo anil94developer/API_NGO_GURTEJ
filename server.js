@@ -5,6 +5,7 @@ const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const { connectDB } = require('./config/db');
 const { seedAdminUser } = require('./scripts/seedAdmin');
+const { isProduction, sessionCookieOptions, isAllowedOrigin } = require('./config/env');
 
 const authRoutes = require('./routes/auth');
 const donationRoutes = require('./routes/donations');
@@ -16,38 +17,10 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-const PRODUCTION_ORIGINS = [
-  'https://admin-gno-gurtej.onrender.com',
-  'https://admin-ngo-gurtej.onrender.com',
-  'https://frontend-ngo-gurtej.onrender.com',
-  'https://ngo-gurtej.onrender.com',
-];
-
-const getAllowedOrigins = () => {
-  const origins = new Set([
-    'http://localhost:5173',
-    'http://localhost:5174',
-    ...PRODUCTION_ORIGINS,
-  ]);
-
-  if (process.env.CLIENT_URL) origins.add(process.env.CLIENT_URL);
-  if (process.env.ADMIN_URL) origins.add(process.env.ADMIN_URL);
-
-  if (process.env.ALLOWED_ORIGINS) {
-    process.env.ALLOWED_ORIGINS.split(',').forEach((o) => {
-      const trimmed = o.trim();
-      if (trimmed) origins.add(trimmed);
-    });
-  }
-
-  return [...origins];
-};
-
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowed = getAllowedOrigins();
-      if (!origin || allowed.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
       } else {
         console.warn('CORS blocked origin:', origin);
@@ -75,12 +48,8 @@ const startServer = async () => {
         mongoUrl: mongoUri,
         collectionName: 'sessions',
       }),
-      cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      },
+      proxy: isProduction,
+      cookie: sessionCookieOptions,
     })
   );
 
@@ -89,7 +58,7 @@ const startServer = async () => {
       success: true,
       message: 'HopeConnect NGO Platform API is running',
       policy: 'Non-Monetary Donations Only',
-      env: process.env.NODE_ENV || 'development',
+      env: isProduction ? 'production' : 'development',
     });
   });
 
@@ -116,9 +85,7 @@ const startServer = async () => {
     res.status(500).json({ success: false, message: 'Internal server error' });
   });
 
-  if (process.env.NODE_ENV !== 'production') {
-    await seedAdminUser();
-  }
+  await seedAdminUser();
 
   const PORT = process.env.PORT || 5001;
   app.listen(PORT, () => {
