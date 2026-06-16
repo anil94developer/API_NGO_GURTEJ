@@ -16,22 +16,47 @@ const app = express();
 
 app.set('trust proxy', 1);
 
+const PRODUCTION_ORIGINS = [
+  'https://admin-gno-gurtej.onrender.com',
+  'https://admin-ngo-gurtej.onrender.com',
+  'https://frontend-ngo-gurtej.onrender.com',
+  'https://ngo-gurtej.onrender.com',
+];
+
 const getAllowedOrigins = () => {
-  if (process.env.ALLOWED_ORIGINS) {
-    return process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean);
-  }
-  return [
-    process.env.CLIENT_URL,
-    process.env.ADMIN_URL,
+  const origins = new Set([
     'http://localhost:5173',
     'http://localhost:5174',
-  ].filter(Boolean);
+    ...PRODUCTION_ORIGINS,
+  ]);
+
+  if (process.env.CLIENT_URL) origins.add(process.env.CLIENT_URL);
+  if (process.env.ADMIN_URL) origins.add(process.env.ADMIN_URL);
+
+  if (process.env.ALLOWED_ORIGINS) {
+    process.env.ALLOWED_ORIGINS.split(',').forEach((o) => {
+      const trimmed = o.trim();
+      if (trimmed) origins.add(trimmed);
+    });
+  }
+
+  return [...origins];
 };
 
 app.use(
   cors({
-    origin: getAllowedOrigins(),
+    origin: (origin, callback) => {
+      const allowed = getAllowedOrigins();
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn('CORS blocked origin:', origin);
+        callback(null, false);
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
