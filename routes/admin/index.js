@@ -1,8 +1,8 @@
 const express = require('express');
-const User = require('../models/User');
-const Donation = require('../models/Donation');
-const Query = require('../models/Query');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const User = require('../../models/User');
+const Donation = require('../../models/Donation');
+const Query = require('../../models/Query');
+const { requireAuth, requireRole } = require('../../middleware/auth');
 
 const router = express.Router();
 

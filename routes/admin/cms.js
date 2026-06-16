@@ -1,19 +1,19 @@
 const express = require('express');
-const Category = require('../models/Category');
-const Gallery = require('../models/Gallery');
-const Event = require('../models/Event');
-const Blog = require('../models/Blog');
-const SuccessStory = require('../models/SuccessStory');
-const FAQ = require('../models/FAQ');
-const Notification = require('../models/Notification');
-const Notice = require('../models/Notice');
-const VoiceOfHope = require('../models/VoiceOfHope');
-const Query = require('../models/Query');
-const TeamMember = require('../models/TeamMember');
-const ContentPage = require('../models/ContentPage');
-const SiteSetting = require('../models/SiteSetting');
-const createCrudRouter = require('../utils/crudRouter');
-const { requireAuth, requireRole } = require('../middleware/auth');
+const Category = require('../../models/Category');
+const Gallery = require('../../models/Gallery');
+const Event = require('../../models/Event');
+const Blog = require('../../models/Blog');
+const SuccessStory = require('../../models/SuccessStory');
+const FAQ = require('../../models/FAQ');
+const Notification = require('../../models/Notification');
+const Notice = require('../../models/Notice');
+const VoiceOfHope = require('../../models/VoiceOfHope');
+const Query = require('../../models/Query');
+const TeamMember = require('../../models/TeamMember');
+const ContentPage = require('../../models/ContentPage');
+const SiteSetting = require('../../models/SiteSetting');
+const createCrudRouter = require('../../utils/crudRouter');
+const { requireAuth, requireRole } = require('../../middleware/auth');
 
 const router = express.Router();
 
